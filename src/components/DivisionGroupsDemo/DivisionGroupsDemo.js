@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import clsx from 'clsx';
+import { LayoutGroup, motion } from 'framer-motion'
 
 import { range } from '@/utils';
 import Card from '@/components/Card';
@@ -14,6 +15,8 @@ function DivisionGroupsDemo({
   initialNumOfGroups = 1,
   includeRemainderArea,
 }) {
+  const id = React.useId();
+
   const [numOfGroups, setNumOfGroups] = React.useState(
     initialNumOfGroups
   );
@@ -31,69 +34,101 @@ function DivisionGroupsDemo({
   const gridStructure =
     numOfGroups < 4
       ? {
-          gridTemplateColumns: `repeat(${numOfGroups}, 1fr)`,
-        }
+        gridTemplateColumns: `repeat(${numOfGroups}, 1fr)`,
+      }
       : {
-          gridTemplateColumns: '1fr 1fr',
-          gridTemplateRows: '1fr 1fr',
-        };
+        gridTemplateColumns: '1fr 1fr',
+        gridTemplateRows: '1fr 1fr',
+      };
+
+  const SPRING = {
+    type: 'spring',
+    stiffness: 60,
+    damping: 15
+  }
 
   return (
-    <Card as="section" className={styles.wrapper}>
-      <header className={styles.header}>
-        <SliderControl
-          label="Number of Groups"
-          className={styles.slider}
-          step={1}
-          min={1}
-          max={4}
-          value={numOfGroups}
-          onChange={(ev) =>
-            setNumOfGroups(Number(ev.target.value))
-          }
-        />
-      </header>
+    <LayoutGroup>
+      <Card as="section" className={styles.wrapper}>
+        <header className={styles.header}>
+          <SliderControl
+            label="Number of Groups"
+            className={styles.slider}
+            step={1}
+            min={1}
+            max={4}
+            value={numOfGroups}
+            onChange={(ev) =>
+              setNumOfGroups(Number(ev.target.value))
+            }
+          />
+        </header>
 
-      <div className={styles.demoWrapper}>
-        <div
-          className={clsx(styles.demoArea)}
-          style={gridStructure}
-        >
-          {range(numOfGroups).map((groupIndex) => (
-            <div key={groupIndex} className={styles.group}>
-              {range(numOfItemsPerGroup).map((index) => {
+        <div className={styles.demoWrapper}>
+          <div
+            className={clsx(styles.demoArea)}
+            style={gridStructure}
+          >
+            {
+              range(numOfGroups).map((groupIndex) => {
                 return (
-                  <div
-                    key={index}
-                    className={styles.item}
-                  />
-                );
+                  <div key={groupIndex} className={styles.group}>
+                    {range(numOfItemsPerGroup).map((index) => {
+                      // TODO: GET REAL ID DEPENDING ON REMINDER IN GROUP
+                      const previousInGroups = groupIndex * numOfItemsPerGroup;
+                      const i = index + previousInGroups;
+                      const layoutId = `${id}-${i}`;
+                      return (
+                        <motion.div
+                          key={layoutId}
+                          className={styles.item}
+                          layoutId={layoutId}
+                          transition={{
+                            ...SPRING,
+                            stiffness: 60 + i * 4
+                          }}
+                        >{i}</motion.div>
+                      );
+                    })}
+                  </div>
+                )
               })}
-            </div>
-          ))}
+          </div>
         </div>
-      </div>
 
-      {includeRemainderArea && (
-        <div className={styles.remainderArea}>
-          <p className={styles.remainderHeading}>
-            Remainder Area
-          </p>
+        {includeRemainderArea && (
+          <div className={styles.remainderArea}>
+            <p className={styles.remainderHeading}>
+              Remainder Area
+            </p>
 
-          {range(remainder).map((index) => {
-            return (
-              <div key={index} className={styles.item} />
-            );
-          })}
-        </div>
-      )}
+            {range(remainder).map((index) => {
+              // i should be number of items before (so group * numPerGroup) + index
+              // in order to make the item come from the right, we should invert their index
+              const i = (remainder - 1 - index) + (numOfGroups * numOfItemsPerGroup);
+              const layoutId = `${id}-${i}`;
+              return (
+                <motion.div
+                  key={layoutId}
+                  className={styles.item}
+                  layoutId={layoutId}
+                  transition={{
+                    ...SPRING,
+                    stiffness: 60 + i * 4
+                  }}
+                >{i}</motion.div>
+              );
+            })}
+          </div>
+        )}
 
-      <Equation
-        dividend={numOfItems}
-        divisor={numOfGroups}
-        remainder={remainder}
-      />
-    </Card>
+        <Equation
+          dividend={numOfItems}
+          divisor={numOfGroups}
+          remainder={remainder}
+        />
+      </Card>
+    </LayoutGroup>
   );
 }
 

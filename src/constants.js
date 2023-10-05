@@ -1,4 +1,6 @@
 export const BLOG_TITLE = 'Bits & Bytes';
+export const BLOG_DESCRIPTION = 'A wonderful blog about JavaScript';
+export const BLOG_URL = 'http.//my-website.com';
 
 export const LIGHT_COLORS = {
   '--color-text': 'hsl(0deg 0% 5%)',

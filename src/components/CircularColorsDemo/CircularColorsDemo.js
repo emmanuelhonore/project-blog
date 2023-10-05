@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import clsx from 'clsx';
 import {
@@ -5,6 +6,7 @@ import {
   Pause,
   RotateCcw,
 } from 'react-feather';
+import { motion } from 'framer-motion';
 
 import Card from '@/components/Card';
 import VisuallyHidden from '@/components/VisuallyHidden';
@@ -18,12 +20,32 @@ const COLORS = [
 ];
 
 function CircularColorsDemo() {
+  const [timeElapsed, setTimeElapsed] = React.useState(0);
+  const [playing, setPlaying] = React.useState(false);
+  const [selectedColor, setSelectedColor] = React.useState(COLORS[0])
+  const id = React.useId();
+
   // TODO: This value should increase by 1 every second:
-  const timeElapsed = 0;
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      if (playing) {
+        setTimeElapsed(elapsed => elapsed + 1)
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [playing])
+
 
   // TODO: This value should cycle through the colors in the
-  // COLORS array:
-  const selectedColor = COLORS[0];
+  // selectedColor
+  React.useEffect(() => {
+    const remainder = timeElapsed % 3;
+    console.log(remainder)
+    setSelectedColor(COLORS[remainder])
+
+    return;
+  }, [timeElapsed]);
 
   return (
     <Card as="section" className={styles.wrapper}>
@@ -38,17 +60,18 @@ function CircularColorsDemo() {
               key={index}
             >
               {isSelected && (
-                <div
+                <motion.div
                   className={
                     styles.selectedColorOutline
                   }
+                  layoutId={id}
                 />
               )}
               <div
                 className={clsx(
                   styles.colorBox,
                   isSelected &&
-                    styles.selectedColorBox
+                  styles.selectedColorBox
                 )}
                 style={{
                   backgroundColor: color.value,
@@ -69,11 +92,20 @@ function CircularColorsDemo() {
           <dd>{timeElapsed}</dd>
         </dl>
         <div className={styles.actions}>
-          <button>
-            <Play />
-            <VisuallyHidden>Play</VisuallyHidden>
-          </button>
-          <button>
+          {playing
+            ? <button onClick={() => setPlaying(false)}>
+              <Pause />
+              <VisuallyHidden>Pause</VisuallyHidden>
+            </button>
+            : <button onClick={() => setPlaying(true)}>
+              <Play />
+              <VisuallyHidden>Play</VisuallyHidden>
+            </button>
+
+          }
+
+
+          <button onClick={() => { setTimeElapsed(0); setPlaying(false) }}>
             <RotateCcw />
             <VisuallyHidden>Reset</VisuallyHidden>
           </button>
